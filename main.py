@@ -4,6 +4,7 @@ import tempfile
 import traceback
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware  
 from fastapi.responses import JSONResponse
 
 import numpy as np
@@ -12,6 +13,14 @@ import pyloudnorm as pyln
 from pydub import AudioSegment
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://www.edmcreativo.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def convertir_a_wav(file_path: str) -> str:
     sound = AudioSegment.from_file(file_path)
