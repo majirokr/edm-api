@@ -42,6 +42,9 @@ def segundos_a_minuto_seg(sec: int) -> str:
 
 @app.post("/analizar-audio/")
 async def analizar_audio(file: UploadFile = File(...)):
+    if file is None or not file.filename:
+        raise HTTPException(status_code=422, detail="No se recibió el archivo. Usa campo 'file'.")
+
     """
     Analiza un track de audio enviado como archivo.
     Parámetros:
