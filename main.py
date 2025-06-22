@@ -163,3 +163,40 @@ async def analizar_audio(file: UploadFile = File(...)):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error procesando audio: {e}")
+
+import requests
+
+@app.post("/analizar-audio-url")
+async def analizar_audio_url(data: dict):
+    url = data.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="No se proporcionó URL")
+
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="No se pudo descargar el archivo desde la URL")
+
+        # Guardar el contenido como archivo temporal
+        ext = os.path.splitext(url)[1] or ".mp3"
+        tmp_in = f"temp_{uuid.uuid4().hex}{ext}"
+        with open(tmp_in, "wb") as f:
+            f.write(response.content)
+
+        # Simular archivo subido y llamar al analizador original
+        with open(tmp_in, "rb") as f:
+            class DummyUploadFile:
+                def __init__(self, filename, content):
+                    self.filename = filename
+                    self.file = content
+
+            dummy_file = DummyUploadFile(tmp_in, f)
+            result = await analizar_audio(file=dummy_file)
+
+        os.remove(tmp_in)
+        return result
+
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error descargando o analizando el archivo: {e}")
+
